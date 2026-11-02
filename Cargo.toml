@@ -2,9 +2,9 @@
 resolver = "3"
 members = ["tundra-common", "tundra-node", "tundra-testpanel"]
 default-members = ["tundra-node"]
-package.rust-version = "1.97.0"
+package.rust-version = "1.99.0"
 package.license = "MIT"
-package.version = "1.0.1"
+package.version = "1.0.2"
 package.edition = "2024"
 
 [workspace.dependencies]
@@ -25,7 +25,7 @@ anyhow = "1.0.98"
 axum = { version = "0.8.1", features = ["http2", "ws"] }
 axum-server = { version = "0.8.0", features = ["tls-rustls"] }
 bollard = "0.21.0"
-rusqlite = { version = "0.40.0", features = ["bundled", "fallible_uint"] }
+rusqlite = { version = "0.41.0", features = ["bundled", "fallible_uint"] }
 rand = "0.10.0"
 base64 = "0.23.0"
 ed25519-dalek = { version = "3.0.0", features = ["rand_core", "pkcs8", "pem"] }
@@ -41,7 +41,7 @@ socket2 = "0.6.5"
 x509-parser = "0.18.1"
 time = "0.3.55"
 tokio-test = "0.4.5"
-parking_lot = "0.12.5"
+parking_lot = "0.13.0"
 
 [profile.dev.package."*"]
 opt-level = 2
