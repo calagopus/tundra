@@ -26,16 +26,20 @@ jobs:
         include:
           - build: x86_64-linux
             os: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
+            target: x86_64-unknown-linux-gnu
+            link_flags: -C link-arg=-Wl,--icf=all -C link-arg=-Wl,-z,pack-relative-relocs
           - build: aarch64-linux
             os: ubuntu-24.04
             target: aarch64-unknown-linux-musl
+            link_flags: -C link-arg=-fuse-ld=lld -C link-arg=-B/opt/lld -C link-arg=-Wl,--icf=all
           - build: riscv64-linux
             os: ubuntu-24.04
             target: riscv64gc-unknown-linux-gnu
+            link_flags: -C relocation-model=static
           - build: ppc64le-linux
             os: ubuntu-24.04
             target: powerpc64le-unknown-linux-gnu
+            link_flags: -C relocation-model=static
 
     steps:
       - name: Checkout sources
@@ -50,13 +54,15 @@ jobs:
 
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross --rev 8c1a8aa4b661711f4b7b6ac07c2e8929ce2f7d27 --locked
+        env:
+          CARGO_BUILD_WARNINGS: allow
 
       - name: Run cargo test
         run: cross test --release --workspace --target ${{ matrix.target }}
 
       - name: Build release binary
         run: |
-          RUSTFLAGS="-C target-feature=+crt-static" \
+          RUSTFLAGS="-C target-feature=+crt-static ${{ matrix.link_flags }}" \
           cross build --release --target ${{ matrix.target }}
 
       - name: Prepare binary with platform name
@@ -128,6 +134,10 @@ jobs:
           cp dist/${{ env.PROJECT_NAME }}-ppc64le-linux/${{ env.BIN_NAME }}-ppc64le-linux .docker/ppc64le/calagopus-tundra
 
           chmod +x .docker/*/calagopus-tundra
+
+      - name: Extract version
+        id: version
+        run: echo "val=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')" >> $GITHUB_OUTPUT
 
       - name: Build & push multi-arch image (main)
         id: build
