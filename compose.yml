@@ -1,6 +1,6 @@
 services:
   tundra:
-    image: ghcr.io/calagopus/tundra:latest
+    image: calagopus/tundra:latest
     restart: unless-stopped
     # the node binds loopback frontends inside other containers' network namespaces,
     # which needs host networking, the host pid namespace and CAP_SYS_ADMIN, privileged
