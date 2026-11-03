@@ -5,25 +5,3 @@ passthrough = ["JEMALLOC_SYS_WITH_LG_PAGE"]
 
 [target.aarch64-unknown-linux-musl]
 pre-build = ["apt-get update && apt-get install --assume-yes --no-install-recommends lld && mkdir -p /opt/lld && ln -s /usr/bin/ld.lld /opt/lld/ld.lld"]
-
-# cross ships no image for powerpc64le-unknown-linux-musl (cross-rs/cross#1776), so we
-# borrow the one from rust-cross/rust-musl-cross. Its gcc is POWER8-baselined, which is
-# the actual ppc64le floor; cross's own ppc64le-gnu image defaults to -mcpu=power9 and
-# silently emits binaries that SIGILL on POWER8.
-#
-# That image ships no qemu, so CI registers binfmt handlers via docker/setup-qemu-action
-# and cargo execs the test binary directly. Deliberately no CARGO_TARGET_*_RUNNER.
-[target.powerpc64le-unknown-linux-musl]
-image = "ghcr.io/rust-cross/rust-musl-cross:powerpc64le-musl"
-# The image ships rustc 1.95.0 at /root/.cargo/bin, ahead of the host toolchain cross
-# appends to PATH, which trips our rust-version. Drop it so the host's wins.
-pre-build = ["rm -rf /root/.cargo /root/.rustup"]
-
-[target.powerpc64le-unknown-linux-musl.env]
-# The linker is set in the image's own /root/.cargo/config.toml, which cross shadows by
-# bind-mounting the host CARGO_HOME. RUST_TEST_THREADS is baked into every cross image
-# but not into this one.
-passthrough = [
-    "CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_MUSL_LINKER=powerpc64le-unknown-linux-musl-gcc",
-    "RUST_TEST_THREADS=1",
-]

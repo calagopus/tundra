@@ -218,11 +218,13 @@ async fn run_socket(
     metrics: &crate::metrics::Metrics,
     refresh: &mut mpsc::Receiver<()>,
 ) -> Result<(), anyhow::Error> {
-    let uri = remote
+    let uri: tokio_tungstenite::tungstenite::http::Uri = remote
         .config
         .ws_url()
         .parse()
         .context("failed to build the control websocket URL")?;
+    let host = uri.host().unwrap_or_default().to_owned();
+    let port = uri.port_u16().unwrap_or(443);
     let request = ClientRequestBuilder::new(uri).with_header(
         "Authorization",
         format!("Bearer {}", remote.config.remote.token),
@@ -242,10 +244,16 @@ async fn run_socket(
         Transport::Tls(tls) => {
             let connector =
                 tokio_tungstenite::Connector::Rustls(Arc::new(rustls::ClientConfig::clone(tls)));
-            let (socket, _) = tokio_tungstenite::connect_async_tls_with_config(
+            let addrs = crate::net::lookup_host(&host, port)
+                .await
+                .context(format!("failed to resolve {host}:{port}"))?;
+            let socket = tokio::net::TcpStream::connect(addrs.as_slice())
+                .await
+                .context("failed to connect the control socket")?;
+            let (socket, _) = tokio_tungstenite::client_async_tls_with_config(
                 request,
+                socket,
                 None,
-                false,
                 Some(connector),
             )
             .await

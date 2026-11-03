@@ -15,6 +15,7 @@ use tracing_subscriber::EnvFilter;
 
 mod config;
 mod metrics;
+mod net;
 mod node;
 mod pinning;
 mod remote;

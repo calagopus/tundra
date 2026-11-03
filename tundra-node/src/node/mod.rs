@@ -490,12 +490,13 @@ impl Node {
             return Err(anyhow::anyhow!("peer has no certificate on file"));
         }
 
-        let addr = tokio::net::lookup_host((entry.host.as_str(), entry.tunnel_port))
+        let addr = crate::net::lookup_host(&entry.host, entry.tunnel_port)
             .await
             .context(format!(
                 "failed to resolve {}:{}",
                 entry.host, entry.tunnel_port
             ))?
+            .into_iter()
             .next()
             .context("host resolved to nothing")?;
 

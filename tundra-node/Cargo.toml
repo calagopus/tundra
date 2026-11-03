@@ -19,6 +19,7 @@ nix = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "sync", "time", "io-util"] }
 tokio-tungstenite = { workspace = true }
 reqwest = { workspace = true, features = ["rustls-no-provider"] }
+hickory-resolver = { workspace = true }
 futures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -42,6 +43,9 @@ ed25519-dalek = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dev-dependencies]
 tikv-jemalloc-ctl = "0.6.0"
+
+[lints.rust]
+linker_messages = "allow"
 
 [lints.clippy]
 all = { level = "warn", priority = -1 }
