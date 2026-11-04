@@ -6,6 +6,8 @@ use bollard::{
 use futures::{Stream, StreamExt};
 use std::{collections::HashMap, net::Ipv4Addr, path::PathBuf, pin::Pin};
 
+use super::container::ContainerInfo;
+
 fn classify(msg: bollard::models::EventMessage) -> Option<ContainerEvent> {
     let actor = msg.actor?;
     let id = actor.id?;
@@ -41,15 +43,6 @@ fn first_ipv4(networks: &HashMap<String, bollard::models::EndpointSettings>) -> 
     }
 
     None
-}
-
-#[derive(Debug, Clone)]
-pub struct ContainerInfo {
-    pub id: String,
-    pub pid: i32,
-    pub running: bool,
-    pub ip: Option<Ipv4Addr>,
-    pub hosts_path: PathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

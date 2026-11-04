@@ -123,7 +123,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Ok(d) => Some(d),
         Err(err) => {
             tracing::warn!(
-                "docker is unavailable, no containers will be adopted: {:?}",
+                "docker is unavailable; Docker container references cannot be adopted, but process-backed references remain available: {:?}",
                 err
             );
             None
