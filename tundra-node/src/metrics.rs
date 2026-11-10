@@ -10,6 +10,8 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 
+const CAPABILITIES: &[&str] = &["process_container_refs"];
+
 #[inline]
 pub fn unix_now() -> u64 {
     SystemTime::now()
@@ -283,6 +285,7 @@ impl Metrics {
 
         json!({
             "applied": self.applied,
+            "capabilities": CAPABILITIES,
             "node": {
                 "uuid": *self.uuid.lock(),
                 "uptime_secs": self.started.elapsed().as_secs(),
@@ -628,6 +631,7 @@ mod tests {
         assert_eq!(v["node"]["epoch"], 9);
         assert_eq!(v["node"]["frontends"], 4);
         assert_eq!(v["node"]["remote_link"], "down");
+        assert_eq!(v["capabilities"], serde_json::json!(CAPABILITIES));
         assert_eq!(v["peers"].as_array().unwrap().len(), 0);
 
         let text = m.prometheus();

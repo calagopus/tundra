@@ -2,7 +2,8 @@ use crate::{
     config::NodeConfig,
     metrics::{Metrics, PeerMetrics},
     node::{
-        docker::{ContainerInfo, DockerAdapter},
+        container::ContainerInfo,
+        docker::DockerAdapter,
         frontend::binder::{ContainerTarget, FrontendBinder},
         identity::Identity,
         plan::{FrontendKey, desired_hosts, needed_peers},
@@ -46,6 +47,7 @@ use tundra_common::{
     wire::{ALPN_TUNNEL, ControlMsg, PROTO_VERSION, ResumeIntent, peek_hello_version},
 };
 
+pub mod container;
 pub mod docker;
 pub mod frontend;
 pub mod identity;
@@ -387,17 +389,25 @@ impl Node {
     }
 
     pub async fn refresh_containers(&self, index: &SnapshotIndex) {
-        let Some(docker) = &self.docker else {
-            return;
-        };
-
         let mut found = HashMap::new();
         for server in index.servers_on(&self.uuid) {
             let Some(entry) = index.server(server) else {
                 continue;
             };
 
-            match docker.inspect(&entry.container_ref).await {
+            let inspected = match ContainerInfo::from_process_ref(
+                &entry.container_ref,
+                entry.dial_addr.as_deref(),
+            ) {
+                Ok(Some(info)) => Ok(info),
+                Ok(None) => match &self.docker {
+                    Some(docker) => docker.inspect(&entry.container_ref).await,
+                    None => continue,
+                },
+                Err(err) => Err(err),
+            };
+
+            match inspected {
                 Ok(info) if info.running => {
                     found.insert(*server, info);
                 }
